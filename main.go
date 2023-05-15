@@ -39,8 +39,10 @@ func printTaskList(taskList []Task) {
 		printTask(task, i+1, "Unfinished")
 	}
 }
+
 func printTask(task Task, number int, status string) {
-	fmt.Printf("%d. %s - %s (worked for %v)\n", number, status, task.Description, task.WorkTime)
+	fmt.Printf("%-5d %-10s %-30s %v
+", number, status, task.Description, task.WorkTime)
 }
 
 func addTask(description string) {
