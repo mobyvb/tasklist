@@ -22,30 +22,25 @@ var tasks []Task
 func printTasks() {
 	fmt.Println("Tasks:")
 
-	finishedTasks := []Task{}
-	unfinishedTasks := []Task{}
-
-	for _, task := range tasks {
-		if task.Finished {
-			finishedTasks = append(finishedTasks, task)
-		} else {
-			unfinishedTasks = append(unfinishedTasks, task)
-		}
-	}
-
-	printTaskList(finishedTasks)
-	printTaskList(unfinishedTasks)
+	printTaskList(tasks)
 }
 
 func printTaskList(taskList []Task) {
 	for i, task := range taskList {
-		status := "Unfinished"
-		if task.Finished {
-			status = "Finished"
+		if !task.Finished {
+			continue
 		}
-		fmt.Printf("%d. %s - %s (worked for %v)
-ewline", i+1, status, task.Description, task.WorkTime)
+		printTask(task, i+1, "Finished")
 	}
+	for i, task := range taskList {
+		if task.Finished {
+			continue
+		}
+		printTask(task, i+1, "Unfinished")
+	}
+}
+func printTask(task Task, number int, status string) {
+	fmt.Printf("%d. %s - %s (worked for %v)\n", number, status, task.Description, task.WorkTime)
 }
 
 func addTask(description string) {
@@ -89,8 +84,7 @@ func workOnTask(index int) {
 
 	fmt.Println("Press enter to stop working on the task...")
 	reader := bufio.NewReader(os.Stdin)
-	_, _ = reader.ReadString('
-')
+	_, _ = reader.ReadString('\n')
 
 	tasks[index-1].WorkTime += time.Since(start)
 }
@@ -158,8 +152,7 @@ func main() {
 		printTasks()
 
 		fmt.Print("> ")
-		input, _ := reader.ReadString('
-')
+		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
 		if input == "quit" {
