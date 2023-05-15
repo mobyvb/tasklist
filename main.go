@@ -21,13 +21,26 @@ var tasks []Task
 
 func printTasks() {
 	fmt.Println("Tasks:")
-	for i, task := range tasks {
-		status := "Unfinished"
-		if task.Finished {
-			status = "Finished"
+
+	printTaskList(tasks)
+}
+
+func printTaskList(taskList []Task) {
+	for i, task := range taskList {
+		if !task.Finished {
+			continue
 		}
-		fmt.Printf("%d. %s (%s) - worked for %v\n", i+1, task.Description, status, task.WorkTime)
+		printTask(task, i+1, "Finished")
 	}
+	for i, task := range taskList {
+		if task.Finished {
+			continue
+		}
+		printTask(task, i+1, "Unfinished")
+	}
+}
+func printTask(task Task, number int, status string) {
+	fmt.Printf("%d. %s - %s (worked for %v)\n", number, status, task.Description, task.WorkTime)
 }
 
 func addTask(description string) {
