@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -10,9 +12,9 @@ import (
 )
 
 type Task struct {
-	description string
-	finished    bool
-	workTime    time.Duration
+	Description string        `json:"description"`
+	Finished    bool          `json:"finished"`
+	WorkTime    time.Duration `json:"work_time"`
 }
 
 var tasks []Task
@@ -21,15 +23,16 @@ func printTasks() {
 	fmt.Println("Tasks:")
 	for i, task := range tasks {
 		status := "Unfinished"
-		if task.finished {
+		if task.Finished {
 			status = "Finished"
 		}
-		fmt.Printf("%d. %s (%s) - worked for %v\n", i+1, task.description, status, task.workTime)
+		fmt.Printf("%d. %s (%s) - worked for %v
+", i+1, task.Description, status, task.WorkTime)
 	}
 }
 
 func addTask(description string) {
-	tasks = append(tasks, Task{description: description, finished: false})
+	tasks = append(tasks, Task{Description: description, Finished: false})
 }
 
 func removeTask(index int) {
@@ -47,7 +50,7 @@ func updateTask(index int, description string) {
 		return
 	}
 
-	tasks[index-1].description = description
+	tasks[index-1].Description = description
 }
 
 func finishTask(index int) {
@@ -56,7 +59,7 @@ func finishTask(index int) {
 		return
 	}
 
-	tasks[index-1].finished = true
+	tasks[index-1].Finished = true
 }
 
 func workOnTask(index int) {
@@ -69,9 +72,10 @@ func workOnTask(index int) {
 
 	fmt.Println("Press enter to stop working on the task...")
 	reader := bufio.NewReader(os.Stdin)
-	_, _ = reader.ReadString('\n')
+	_, _ = reader.ReadString('
+')
 
-	tasks[index-1].workTime += time.Since(start)
+	tasks[index-1].WorkTime += time.Since(start)
 }
 
 func handleCommand(input string) {
@@ -102,16 +106,53 @@ func atoi(str string) int {
 	return result
 }
 
+func saveTasksToFile() {
+	taskData, err := json.Marshal(tasks)
+	if err != nil {
+		fmt.Println("Error saving tasks to file:", err)
+		return
+	}
+
+	err = ioutil.WriteFile("tasks.dat", taskData, 0644)
+	if err != nil {
+		fmt.Println("Error saving tasks to file:", err)
+	}
+}
+
+func loadTasksFromFile() {
+	taskData, err := ioutil.ReadFile("tasks.dat")
+	if err != nil {
+		fmt.Println("No existing task file found. Starting with an empty task list.")
+		return
+	}
+
+	err = json.Unmarshal(taskData, &tasks)
+	if err != nil {
+		fmt.Println("Error loading tasks from file:", err)
+	}
+}
+
 func main() {
+	loadTasksFromFile()
+
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
 		printTasks()
 
 		fmt.Print("> ")
-		input, _ := reader.ReadString('\n')
+		input, _ := reader.ReadString('
+')
 		input = strings.TrimSpace(input)
+
+		if input == "quit" {
+			break
+		}
 
 		handleCommand(input)
 	}
+
+	saveTasksToFile()
+
+	fmt.Println("Task list saved to file. Goodbye!")
 }
