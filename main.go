@@ -26,8 +26,7 @@ func printTasks() {
 		if task.Finished {
 			status = "Finished"
 		}
-		fmt.Printf("%d. %s (%s) - worked for %v
-", i+1, task.Description, status, task.WorkTime)
+		fmt.Printf("%d. %s (%s) - worked for %v\n", i+1, task.Description, status, task.WorkTime)
 	}
 }
 
@@ -72,8 +71,7 @@ func workOnTask(index int) {
 
 	fmt.Println("Press enter to stop working on the task...")
 	reader := bufio.NewReader(os.Stdin)
-	_, _ = reader.ReadString('
-')
+	_, _ = reader.ReadString('\n')
 
 	tasks[index-1].WorkTime += time.Since(start)
 }
@@ -141,8 +139,7 @@ func main() {
 		printTasks()
 
 		fmt.Print("> ")
-		input, _ := reader.ReadString('
-')
+		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
 		if input == "quit" {
