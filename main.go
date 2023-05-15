@@ -32,6 +32,7 @@ func printTaskList(taskList []Task) {
 		}
 		printTask(task, i+1, "Finished")
 	}
+	fmt.Println("------------------------------------------")
 	for i, task := range taskList {
 		if task.Finished {
 			continue
