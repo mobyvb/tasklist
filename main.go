@@ -41,8 +41,7 @@ func printTaskList(taskList []Task) {
 }
 
 func printTask(task Task, number int, status string) {
-	fmt.Printf("%-5d %-10s %-30s %v
-", number, status, task.Description, task.WorkTime)
+	fmt.Printf("%-5d %-10s %-10v %s\n", number, status, task.WorkTime.Truncate(time.Second), task.Description)
 }
 
 func addTask(description string) {
