@@ -23,6 +23,12 @@ func printTasks() {
 	fmt.Println("Tasks:")
 
 	printTaskList(tasks)
+
+	totalTime := time.Duration(0)
+	for _, task := range tasks {
+		totalTime += task.WorkTime
+	}
+	fmt.Printf("\nTotal time spent on all tasks: %v\n", totalTime.Truncate(time.Second))
 }
 
 func printTaskList(taskList []Task) {
@@ -126,14 +132,14 @@ func saveTasksToFile() {
 		return
 	}
 
-	err = ioutil.WriteFile("tasks.dat", taskData, 0644)
+	err = ioutil.WriteFile(taskFile, taskData, 0644)
 	if err != nil {
 		fmt.Println("Error saving tasks to file:", err)
 	}
 }
 
 func loadTasksFromFile() {
-	taskData, err := ioutil.ReadFile("tasks.dat")
+	taskData, err := ioutil.ReadFile(taskFile)
 	if err != nil {
 		fmt.Println("No existing task file found. Starting with an empty task list.")
 		return
@@ -145,7 +151,15 @@ func loadTasksFromFile() {
 	}
 }
 
+var taskFile string
+
 func main() {
+	if len(os.Args) > 1 {
+		taskFile = os.Args[1]
+	} else {
+		taskFile = "tasks.dat"
+	}
+
 	loadTasksFromFile()
 
 	reader := bufio.NewReader(os.Stdin)
