@@ -15,6 +15,7 @@ type Task struct {
 	Description string        `json:"description"`
 	Finished    bool          `json:"finished"`
 	WorkTime    time.Duration `json:"work_time"`
+	SubTasks    []Task        `json:"subtasks"`
 }
 
 var tasks []Task
@@ -22,37 +23,50 @@ var tasks []Task
 func printTasks() {
 	fmt.Println("Tasks:")
 
-	printTaskList(tasks)
+	printTaskList(tasks, "")
 
 	totalTime := time.Duration(0)
 	for _, task := range tasks {
 		totalTime += task.WorkTime
+		for _, subTask := range task.SubTasks {
+			totalTime += subTask.WorkTime
+		}
 	}
 	fmt.Printf("\nTotal time spent on all tasks: %v\n", totalTime.Truncate(time.Second))
 }
 
-func printTaskList(taskList []Task) {
+func printTaskList(taskList []Task, prefix string) {
 	for i, task := range taskList {
 		if !task.Finished {
 			continue
 		}
-		printTask(task, i+1, "Finished")
+		printTask(task, prefix+strconv.Itoa(i+1), "Finished")
 	}
 	fmt.Println("------------------------------------------")
 	for i, task := range taskList {
 		if task.Finished {
 			continue
 		}
-		printTask(task, i+1, "Unfinished")
+		printTask(task, prefix+strconv.Itoa(i+1), "Unfinished")
 	}
 }
 
-func printTask(task Task, number int, status string) {
-	fmt.Printf("%-5d %-10s %-10v %s\n", number, status, task.WorkTime.Truncate(time.Second), task.Description)
+func printTask(task Task, number string, status string) {
+	fmt.Printf("%-5s %-10s %-10v %s\n", number, status, task.WorkTime.Truncate(time.Second), task.Description)
+	printTaskList(task.SubTasks, number+".")
 }
 
 func addTask(description string) {
 	tasks = append(tasks, Task{Description: description, Finished: false})
+}
+
+func addSubTask(parentIndex int, subDescription string) {
+	if parentIndex < 1 || parentIndex > len(tasks) {
+		fmt.Println("Invalid task number")
+		return
+	}
+
+	tasks[parentIndex-1].SubTasks = append(tasks[parentIndex-1].SubTasks, Task{Description: subDescription, Finished: false})
 }
 
 func removeTask(index int) {
@@ -82,10 +96,22 @@ func finishTask(index int) {
 	tasks[index-1].Finished = true
 }
 
-func workOnTask(index int) {
+func workOnTask(index int, subIndex int) {
 	if index < 1 || index > len(tasks) {
 		fmt.Println("Invalid task number")
 		return
+	}
+
+	var taskToWork *Task
+	if subIndex > 0 {
+		if subIndex > len(tasks[index-1].SubTasks) {
+			fmt.Println("Invalid subtask number")
+			return
+		}
+
+		taskToWork = &tasks[index-1].SubTasks[subIndex-1]
+	} else {
+		taskToWork = &tasks[index-1]
 	}
 
 	start := time.Now()
@@ -94,7 +120,7 @@ func workOnTask(index int) {
 	reader := bufio.NewReader(os.Stdin)
 	_, _ = reader.ReadString('\n')
 
-	tasks[index-1].WorkTime += time.Since(start)
+	taskToWork.WorkTime += time.Since(start)
 }
 
 func handleCommand(input string) {
@@ -104,6 +130,9 @@ func handleCommand(input string) {
 	switch command {
 	case "add":
 		addTask(strings.Join(tokens[1:], " "))
+	case "add-subtask":
+		parentTaskNum, _ := strconv.Atoi(tokens[1])
+		addSubTask(parentTaskNum, strings.Join(tokens[2:], " "))
 	case "remove":
 		removeTask(atoi(tokens[1]))
 	case "update":
@@ -111,7 +140,13 @@ func handleCommand(input string) {
 	case "finish":
 		finishTask(atoi(tokens[1]))
 	case "work":
-		workOnTask(atoi(tokens[1]))
+		parts := strings.Split(tokens[1], ".")
+		index := atoi(parts[0])
+		subIndex := 0
+		if len(parts) > 1 {
+			subIndex = atoi(parts[1])
+		}
+		workOnTask(index, subIndex)
 	default:
 		fmt.Println("Invalid command")
 	}
